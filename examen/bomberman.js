@@ -1,14 +1,13 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const columnas = 13; 
-const filas = 11; 
-const tamanioCelda = 80; 
-
+const columnas = 13;
+const filas = 11;
+const tamanioCelda = 80;
+let bombaActiva = false;
 
 canvas.width = columnas * tamanioCelda;
 canvas.height = filas * tamanioCelda;
-
 
 const mapa = [
     [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
@@ -24,7 +23,6 @@ const mapa = [
     [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
 ];
 
-
 const jugador = {
     x: 1,
     y: 1,
@@ -35,7 +33,7 @@ const jugador = {
 
 let bombas = [];
 let explosiones = [];
-
+let pared = new Image();
 function pintarMapa() {
     for (let y = 0; y < filas; y++) {
         for (let x = 0; x < columnas; x++) {
@@ -48,13 +46,15 @@ function pintarMapa() {
                     tamanioCelda
                 );
             } else if (mapa[y][x] === 1) {
-                ctx.fillStyle = "brown";
-                ctx.fillRect(
-                    x * tamanioCelda,
-                    y * tamanioCelda,
-                    tamanioCelda,
-                    tamanioCelda
-                );
+                pared.src = "mecoboy.png";
+                ctx.drawImage(pared, x * tamanioCelda, y * tamanioCelda);
+                // ctx.fillStyle = "brown";
+                // ctx.fillRect(
+                //     x * tamanioCelda,
+                //     y * tamanioCelda,
+                //     tamanioCelda,
+                //     tamanioCelda
+                // );
             } else {
                 ctx.fillStyle = "white";
                 ctx.fillRect(
@@ -67,33 +67,38 @@ function pintarMapa() {
         }
     }
 }
-
+let prota = new Image();
+prota.src = "buho.png";
 function dibujarJugador() {
-    ctx.fillStyle = jugador.color;
-    ctx.fillRect(
-        jugador.x * tamanioCelda,
-        jugador.y * tamanioCelda,
-        jugador.size,
-        jugador.size
-    );
+    ctx.drawImage(prota, jugador.x * tamanioCelda, jugador.y * tamanioCelda);
+    // ctx.fillStyle = jugador.color;
+    // ctx.fillRect(
+    //     jugador.x * tamanioCelda,
+    //     jugador.y * tamanioCelda,
+    //     jugador.size,
+    //     jugador.size
+    // );
 }
-
+let bombita = new Image();
+bombita.src = "bombita.png";
 function dibujarBombas() {
     bombas.forEach((bomba) => {
-        ctx.fillStyle = "black";
-        ctx.fillRect(
-            bomba.x * tamanioCelda,
-            bomba.y * tamanioCelda,
-            tamanioCelda,
-            tamanioCelda
-        );
+        ctx.drawImage(bombita, bomba.x * tamanioCelda, bomba.y * tamanioCelda);
+        // ctx.fillStyle = "black";
+        // ctx.fillRect(
+        //     bomba.x * tamanioCelda,
+        //     bomba.y * tamanioCelda,
+        //     tamanioCelda,
+        //     tamanioCelda
+        // );
     });
 }
 
 function pintarBomba(x, y) {
-    if (mapa[y][x] === 0) {
+    if (!bombaActiva && mapa[y][x] === 0) {
         bombas.push({ x, y, timer: 5000 });
     }
+    bombaActiva = true;
 }
 
 function puedoMoverme(nuevoX, nuevoY) {
@@ -116,10 +121,11 @@ function moverJugador(dx, dy) {
         jugador.y = nuevoY;
     }
 }
-
+const sonidoExplosion = new Audio("sonidoExplosion.mp3");
 function crearExplosion(x, y) {
-    const rangoExplosion = 1; 
-    explosiones.push({ x, y, range: rangoExplosion, timer: 500 });
+    const rangoExplosion = 1;
+    explosiones.push({ x, y, range: rangoExplosion, timer: 1500 });
+    sonidoExplosion.play();
     
     for (let i = 1; i <= rangoExplosion; i++) {
         if (x + i < columnas && mapa[y][x + i] !== 2) {
@@ -142,62 +148,104 @@ function crearExplosion(x, y) {
         
         if (y - i >= 0 && mapa[y - i][x] !== 2) {
             if (mapa[y - i][x] === 1) {
-                mapa[y - i][x] = 0; 
+                mapa[y - i][x] = 0;
             }
         }
     }
 }
 
+let explosionCen = new Image();
+explosionCen.src = "explosion.png";
+let explosionAbajo = new Image();
+explosionAbajo.src = "explosionAba.png";
+let explosionArriba = new Image();
+explosionArriba.src = "explosionArri.png";
+let explosionIzquierda = new Image();
+explosionIzquierda.src = "explosionIzq.png";
+let explosionDerecha = new Image();
+explosionDerecha.src = "explosionDe.png";
+
+
 function dibujarExplosion() {
     explosiones.forEach((explosion, index) => {
+        
+        
         if (explosion.timer > 0) {
+            if (!explosion.sonidoReproducido) {
+                sonidoExplosion.play();
+                explosion.sonidoReproducido = true;  // Marcar que ya se reprodujo el sonido
+            }
             ctx.fillStyle = "orange";
-            
-            ctx.fillRect(
+            ctx.drawImage(
+                explosionCen,
                 explosion.x * tamanioCelda,
-                explosion.y * tamanioCelda,
-                tamanioCelda,
-                tamanioCelda
+                explosion.y * tamanioCelda
             );
+            // ctx.fillRect(
+            //     explosion.x * tamanioCelda,
+            //     explosion.y * tamanioCelda,
+            //     tamanioCelda,
+            //     tamanioCelda
+            // );
             
             for (let i = 1; i <= explosion.range; i++) {
                 if (
                     explosion.x + i < columnas &&
                     mapa[explosion.y][explosion.x + i] !== 2
                 ) {
-                    ctx.fillRect(
+                    ctx.drawImage(
+                        explosionDerecha,
                         (explosion.x + i) * tamanioCelda,
-                        explosion.y * tamanioCelda,
-                        tamanioCelda,
-                        tamanioCelda
-                    ); // Explocion en Derecha
+                        explosion.y * tamanioCelda
+                    );
+                    // ctx.fillRect(
+                    //     (explosion.x + i) * tamanioCelda,
+                    //     explosion.y * tamanioCelda,
+                    //     tamanioCelda,
+                    //     tamanioCelda
+                    // ); // Explocion en Derecha
                 }
                 if (explosion.x - i >= 0 && mapa[explosion.y][explosion.x - i] !== 2) {
-                    ctx.fillRect(
+                    ctx.drawImage(
+                        explosionIzquierda,
                         (explosion.x - i) * tamanioCelda,
-                        explosion.y * tamanioCelda,
-                        tamanioCelda,
-                        tamanioCelda
-                    ); // Explocion enIzquierda
+                        explosion.y * tamanioCelda
+                    );
+                    // ctx.fillRect(
+                    //     (explosion.x - i) * tamanioCelda,
+                    //     explosion.y * tamanioCelda,
+                    //     tamanioCelda,
+                    //     tamanioCelda
+                    // ); // Explocion enIzquierda
                 }
                 if (
                     explosion.y + i < filas &&
                     mapa[explosion.y + i][explosion.x] !== 2
                 ) {
-                    ctx.fillRect(
+                    ctx.drawImage(
+                        explosionAbajo,
                         explosion.x * tamanioCelda,
-                        (explosion.y + i) * tamanioCelda,
-                        tamanioCelda,
-                        tamanioCelda
-                    ); // Explosion hacia Abajo
+                        (explosion.y + i) * tamanioCelda
+                    );
+                    // ctx.fillRect(
+                    //     explosion.x * tamanioCelda,
+                    //     (explosion.y + i) * tamanioCelda,
+                    //     tamanioCelda,
+                    //     tamanioCelda
+                    // ); // Explosion hacia Abajo
                 }
                 if (explosion.y - i >= 0 && mapa[explosion.y - i][explosion.x] !== 2) {
-                    ctx.fillRect(
+                    ctx.drawImage(
+                        explosionArriba,
                         explosion.x * tamanioCelda,
-                        (explosion.y - i) * tamanioCelda,
-                        tamanioCelda,
-                        tamanioCelda
-                    ); // Explosion hacia Arriba
+                        (explosion.y - i) * tamanioCelda
+                    );
+                    // ctx.fillRect(
+                    //     explosion.x * tamanioCelda,
+                    //     (explosion.y - i) * tamanioCelda,
+                    //     tamanioCelda,
+                    //     tamanioCelda
+                    // ); // Explosion hacia Arriba
                 }
             }
             
@@ -207,6 +255,7 @@ function dibujarExplosion() {
                 explosiones.splice(index, 1);
             }
         }
+        
     });
 }
 
@@ -259,7 +308,8 @@ function detonarBomba() {
                 }
             }
             
-            bombas.splice(index, 1); 
+            bombas.splice(index, 1);
+            bombaActiva = false;
         }
     });
 }
@@ -269,7 +319,7 @@ function cicloJuego() {
     pintarMapa();
     dibujarJugador();
     dibujarBombas();
-    dibujarExplosion(); 
+    dibujarExplosion();
     detonarBomba();
     requestAnimationFrame(cicloJuego);
 }
