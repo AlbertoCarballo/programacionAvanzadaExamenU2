@@ -128,6 +128,7 @@ function pintarMapa() {
         const nuevoX = jugador.x + dx;
         const nuevoY = jugador.y + dy;
         
+        
         if (puedoMoverme(nuevoX, nuevoY)) {
             jugador.x = nuevoX;
             console.log("jugador en x " + jugador.x);
@@ -330,7 +331,7 @@ function pintarMapa() {
     }
     
     
-    function rashoLaser(x, y, rangoExplosion = 12) {
+    function rashoSonicos(x, y, rangoExplosion = 12) {
         
         if (jugador.health <= 1) {
             console.log("No tienes más vidas para usar la función.");
@@ -402,36 +403,10 @@ function pintarMapa() {
     
     let pausa = false;
     
-    function contador(){
-        if (pausa) {
-            
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; 
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.fillStyle = 'red';
-            ctx.font = "30px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-
-            ctx.fillText("P A U S A", 520, 200);
-            
-            ctx.fillStyle = 'white';
-            ctx.font = "30px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            
-            ctx.fillText("Instrucciones:", canvas.width / 2, canvas.height / 2 - 60);
-            ctx.font = "20px Arial";
-            ctx.fillText("Flechas de dirección para moverse", canvas.width / 2, canvas.height / 2 - 20);
-            ctx.fillText("Espacio para colocar una bomba", canvas.width / 2, canvas.height / 2 + 20);
-            ctx.fillText("R para lanzar el rayo", canvas.width / 2, canvas.height / 2 + 60);
-            ctx.fillText("P para pausar el juego", canvas.width / 2, canvas.height / 2 + 100);
-            return; 
-        }
-
+    function contador(){       
         const timeoutId = setTimeout(function(){
         }, 1000);
-
+        
         ctx.fillStyle ='rgb(1, 201, 241)';
         ctx.font ="50px Arial"
         ctx.fillText("Time : "+ (timeoutId/100), 500, canvas.height - 20);
@@ -485,6 +460,8 @@ function pintarMapa() {
     
     
     window.addEventListener("keydown", function (e) {
+        
+        
         if (e.code === "ArrowUp") {
             moverJugador(0, -1);
             jugador.direccion = 'up';
@@ -502,7 +479,7 @@ function pintarMapa() {
             jugador.direccion = 'right';
         }
         if (e.code === "Space") pintarBomba(jugador.x, jugador.y);
-        if (e.code === "KeyR") rashoLaser(jugador.x, jugador.y);
+        if (e.code === "KeyR") rashoSonicos(jugador.x, jugador.y);
         if (e.code === "KeyP") pausa = !pausa;
         if (e.code==="KeyJ")cicloJuego();
     });
@@ -515,21 +492,47 @@ function pintarMapa() {
     
     
     function cicloJuego() {
+        if (!pausa) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            pintarMapa();
+            dibujarJugador();
+            dibujarBombas();
+            dibujarExplosion();
+            detonarBomba();
+            contador();
+            if (contador()){
+                console.log("perdi")
+                return;
+            }
+            if (verificarVictoria()){
+                return
+            }
+        }else{
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = 'red';
+            ctx.font = "30px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            ctx.fillText("P A U S A", 520, 200);
+            
+            ctx.fillStyle = 'white';
+            ctx.font = "30px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            
+            ctx.fillText("Instrucciones:", canvas.width / 2, canvas.height / 2 - 60);
+            ctx.font = "20px Arial";
+            ctx.fillText("Flechas de dirección para moverse", canvas.width / 2, canvas.height / 2 - 20);
+            ctx.fillText("Espacio para colocar una bomba", canvas.width / 2, canvas.height / 2 + 20);
+            ctx.fillText("R para lanzar el rayo sonico", canvas.width / 2, canvas.height / 2 + 60);
+            ctx.fillText("P para pausar el juego", canvas.width / 2, canvas.height / 2 + 100);
+        }
         
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        pintarMapa();
-        dibujarJugador();
-        dibujarBombas();
-        dibujarExplosion();
-        detonarBomba();
-        contador();
-        if (contador()){
-            console.log("perdi")
-            return;
-        }
-        if (verificarVictoria()){
-            return
-        }
+        
         
         requestAnimationFrame(cicloJuego);  
         
