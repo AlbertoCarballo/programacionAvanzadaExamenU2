@@ -9,6 +9,7 @@ let bombaActiva = false;
 canvas.width = columnas * tamanioCelda;
 canvas.height = filas * tamanioCelda;
 
+
 const mapa = [
     [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
     [2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
@@ -101,7 +102,7 @@ function pintarMapa() {
     
     function pintarBomba(x, y) {
         if (!bombaActiva && mapa[y][x] === 0) {
-            bombas.push({ x, y, timer: 3000 });
+            bombas.push({ x, y, timer: 7000 });
         }
         bombaActiva = true;
     }
@@ -139,7 +140,8 @@ function pintarMapa() {
     
     function crearExplosion(x, y) {
         const rangoExplosion = 1;
-        explosiones.push({ x, y, range: rangoExplosion, timer: 1500 });
+        explosiones.push({ x, y, range: rangoExplosion, timer: 7000 });
+        sonidoExplosion.volume = 1;
         sonidoExplosion.play();
         
         for (let i = 1; i <= rangoExplosion; i++) {
@@ -267,7 +269,7 @@ function pintarMapa() {
                 
                 explosion.timer -= 100;
                 
-                if (explosion.timer <= 0) {
+                if (explosion.timer === 0) {
                     explosiones.splice(index, 1);
                 }
             }
@@ -490,9 +492,11 @@ function pintarMapa() {
         ctx.fillRect(1200,0,400,900);
     }
     
-    
+    let musicaAmbiental=new Audio("bomberman.mp3")
     function cicloJuego() {
         if (!pausa) {
+            musicaAmbiental.volume=0.2;
+            musicaAmbiental.play();
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             pintarMapa();
             dibujarJugador();
@@ -508,7 +512,7 @@ function pintarMapa() {
                 return
             }
         }else{
-            
+            musicaAmbiental.pause();
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; 
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
